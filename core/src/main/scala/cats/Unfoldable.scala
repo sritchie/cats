@@ -53,7 +53,7 @@ object Unfoldable {
         case Nil     => None
         case x :: xs => Some((xs, x))
       }
-      F.unfoldLeft(ga)(go)
+      F.unfoldLeft(ga.reverse)(go)
     }
   }
 }
