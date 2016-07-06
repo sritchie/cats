@@ -2,31 +2,23 @@ package cats
 package laws
 package discipline
 
-import org.scalacheck.{Prop, Arbitrary}
-import Prop.forAll
-import cats.std.option._
+import org.scalacheck.Arbitrary
+import org.scalacheck.Prop.forAll
+import org.typelevel.discipline.Laws
 
-trait UnfoldableTests[F[_]] extends FoldableTests[F] {
+trait UnfoldableTests[F[_]] extends Laws {
   def laws: UnfoldableLaws[F]
 
-  def unfoldable[A: Arbitrary, B: Arbitrary](implicit
-    ArbFA: Arbitrary[F[A]],
-    Eqa: Eq[A],
-    EqFa: Eq[F[A]],
-    B: Monoid[B],
-    EqB: Eq[B]
-  ): RuleSet =
-    new RuleSet {
-      def name: String = "unfoldable"
-      def bases: Seq[(String, RuleSet)] = Nil
-      def parents: Seq[RuleSet] = Seq(foldable[A, B])
-      def props: Seq[(String, Prop)] = Seq(
-        "prependHeadOption" -> forAll(laws.prependHeadOption[A] _),
-        "appendLastOption" -> forAll(laws.appendLastOption[A] _),
-        "reverseReverseId" -> forAll(laws.reverseReverseId[A] _),
-        "reverseHeadOption" -> forAll(laws.reverseHeadOption[A] _)
+  def unfoldable[A: Arbitrary](implicit EqFa: Eq[F[A]]): RuleSet =
+    new DefaultRuleSet(
+      name = "unfoldable",
+      parent = None,
+//        "noneConsistentWithDefault"         -> forAll(() => laws.noneConsistentWithDefault[A]),
+        "singletonConsistentWithDefault"    -> forAll(laws.singletonConsistentWithDefault[A] _),
+        "replicateConsistentWithDefault"    -> forAll(laws.replicateConsistentWithDefault[A] _),
+        "buildConsistentWithDefault"        -> forAll(laws.buildConsistentWithDefault[A] _),
+        "fromFoldableConsistentWithDefault" -> forAll(laws.fromFoldableConsistentWithDefault[A] _)
       )
-    }
 }
 
 

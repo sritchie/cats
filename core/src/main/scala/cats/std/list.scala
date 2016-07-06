@@ -63,21 +63,6 @@ trait ListInstances extends cats.kernel.std.ListInstances {
         Eval.defer(loop(fa))
       }
 
-      def unfoldRight[A, B](seed: B)(f: B => Eval[Option[(A, B)]]): Eval[List[A]] =
-        f(seed).flatMap(_ match {
-          case None         => Eval.now(Nil)
-          case Some((a, b)) => unfoldRight(b)(f).map(a :: _)
-        })
-
-      def unfoldLeft[A, B](seed: B)(f: B => Option[(B, A)]): List[A] = {
-        @tailrec def loop(seed: B)(xs: List[A]): List[A] = f(seed) match {
-          case None         => xs
-          case Some((b, a)) => loop(b)(a :: xs)
-        }
-
-        loop(seed)(Nil)
-      }
-
       def traverse[G[_], A, B](fa: List[A])(f: A => G[B])(implicit G: Applicative[G]): G[List[B]] =
         foldRight[A, G[List[B]]](fa, Always(G.pure(List.empty))){ (a, lglb) =>
           G.map2Eval(f(a), lglb)(_ :: _)
@@ -90,6 +75,21 @@ trait ListInstances extends cats.kernel.std.ListInstances {
         fa.forall(p)
 
       override def isEmpty[A](fa: List[A]): Boolean = fa.isEmpty
+
+      def unfoldLeft[A, B](seed: B)(f: B => Option[(B, A)]): List[A] = {
+        @tailrec def loop(seed: B)(xs: List[A]): List[A] = f(seed) match {
+          case None         => xs
+          case Some((b, a)) => loop(b)(a :: xs)
+        }
+
+        loop(seed)(Nil)
+      }
+
+      override def none[A]: List[A] = Nil
+      override def singleton[A](value: A): List[A] = List(value)
+      override def replicate[A](n: Int)(value: A): List[A] = List.fill(n)(value)
+      override def build[A](as: A*): List[A] = as.toList
+      override def fromFoldable[G[_], A](ga: G[A])(implicit G: Foldable[G]): List[A] = G.toList(ga)
     }
 
   implicit def catsStdShowForList[A:Show]: Show[List[A]] =

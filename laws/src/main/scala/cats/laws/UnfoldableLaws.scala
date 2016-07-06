@@ -1,23 +1,25 @@
 package cats
 package laws
 
-import cats.syntax.foldable._
-import cats.syntax.unfoldable._
+import cats.std.list._
 
-trait UnfoldableLaws[F[_]] extends FoldableLaws[F] {
-  implicit override def F: Unfoldable[F]
+trait UnfoldableLaws[F[_]] {
+  implicit def F: Unfoldable[F]
 
-  def prependHeadOption[A](fa: F[A], a: A): IsEq[Option[A]] =
-    F.prepend(a, fa).headOption <-> Some(a)
+  def noneConsistentWithDefault[A]: IsEq[F[A]] =
+    F.none[A] <-> Unfoldable.DefaultImpl.none[F, A]
 
-  def appendLastOption[A](fa: F[A], a: A): IsEq[Option[A]] =
-    fa.append(a).lastOption <-> Some(a)
+  def singletonConsistentWithDefault[A](a: A): IsEq[F[A]] =
+    F.singleton(a) <-> Unfoldable.DefaultImpl.singleton[F, A](a)
 
-  def reverseReverseId[A](fa: F[A]): IsEq[F[A]] =
-    fa.reverse.reverse <-> fa
+  def replicateConsistentWithDefault[A](n: Int, a: A): IsEq[F[A]] =
+    F.replicate(n)(a) <-> Unfoldable.DefaultImpl.replicate[F, A](n)(a)
 
-  def reverseHeadOption[A](fa: F[A]): IsEq[Option[A]] =
-    fa.reverse.headOption <-> fa.lastOption
+  def buildConsistentWithDefault[A](as: List[A]): IsEq[F[A]] =
+    F.build(as: _*) <-> Unfoldable.DefaultImpl.build[F, A](as: _*)
+
+  def fromFoldableConsistentWithDefault[A](as: List[A]): IsEq[F[A]] =
+    F.fromFoldable(as) <-> Unfoldable.DefaultImpl.fromFoldable[F, List, A](as)
 }
 
 object UnfoldableLaws {

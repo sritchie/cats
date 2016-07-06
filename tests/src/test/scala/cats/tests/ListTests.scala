@@ -19,7 +19,7 @@ class ListTests extends CatsSuite {
   checkAll("List[Int] with Option", TraverseTests[List].traverse[Int, Int, Int, List[Int], Option, Option])
   checkAll("Traverse[List]", SerializableTests.serializable(Traverse[List]))
 
-  checkAll("List[Int]", UnfoldableTests[List].unfoldable[Int, Int])
+  checkAll("List[Int]", UnfoldableTests[List].unfoldable[Int])
   checkAll("Unfoldable[List]", SerializableTests.serializable(Unfoldable[List]))
 
   test("nel => list => nel returns original nel")(
